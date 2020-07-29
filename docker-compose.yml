@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+    front-end:
+        build: ./front-end
+        container_name: lms-fe
+        volumes:
+            - ./front-end:/app
+            - fe-node-modules:/app/node_modules
+        ports:
+            - "8080:80"
+
+    back-end:
+        build: ./back-end
+        container_name: lms-be
+        environment:
+            - NODE_ENV=dev
+        volumes:
+            - ./back-end:/app
+            - be-node-modules:/app/node_modules
+        ports:
+            - "3000:3000"
+            - "9229:9229"
+    db:
+        image: mongo
+        container_name: lms-db
+        restart: always
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=root
+            - MONGO_INITDB_ROOT_PASSWORD=example
+            - MONGO_INITDB_DATABASE=lmsdb
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo-data:/data/db
+            - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
+volumes:
+    mongo-data:
+    fe-node-modules:
+    be-node-modules:

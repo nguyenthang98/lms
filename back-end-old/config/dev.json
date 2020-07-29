@@ -1,0 +1,17 @@
+{
+    "dbConfig": {
+        "host": "db",
+        "port": 27017,
+        "db": "lmsdb",
+        "uname": "thang",
+        "pwd": "example",
+        "authSource": null,
+        "pwdHashIter": 1000,
+        "pwdHashLength": 64,
+        "pwdHashAlgo": "sha512"
+    },
+    "serverConfig": {
+        "port": 3000,
+        "jwtSecret": "a secret text"
+    }
+}
