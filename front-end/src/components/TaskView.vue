@@ -8,6 +8,7 @@
 
         <div>
             <button @click="importSubmissions()">IMPORT</button>
+            <button @click="exportSubmissions()">EXPORT</button>
             <button @click="clearSubmissions()">CLEAR</button>
             <button @click="addSubmission()">Add</button>
         </div>
@@ -27,19 +28,36 @@
                 <tr v-for="sub in submissions">
                     <td>{{sub.studentId}}</td>
                     <td><a v-bind:href="sub.git" target="_blank">{{sub.git}}</a></td>
-                    <td><a v-bind:href="sub.web" target="_blank">{{sub.web}}</a></td>
+                    <td><a v-bind:href="sub.web" @click="viewWeb($event, sub.web)">{{sub.web}}</a></td>
                     <td>{{formatDate(sub.submissionDate)}}</td>
                     <td><Editable :get-value="getValueFn(sub)" :set-value="setValueFn(sub)" type="number"/></td>
                     <td><button @click="deleteSubmission(sub._id)">X</button></td>
                 </tr>
             </tbody>
         </table>
+        <div v-if="previewUrl" class="preview-frame">
+            <div>
+                <button @click="previewUrl = null">Close</button>
+                <button @click="openLink(previewUrl)" title="Open in new tab">Open</button>
+            </div>
+            <iframe :src="previewUrl"></iframe>
+        </div>
     </div>
 </template>
 <style lang="css" scoped>
 table > thead th {
     border: 1px solid black;
     background: lightgrey;
+}
+.preview-frame {
+    position: absolute;
+    right: 10px;
+    top: 10vh;
+}
+.preview-frame iframe {
+    position: relative;
+    width: 50vw;
+    height: 70vh;
 }
 </style>
 <script>
@@ -53,7 +71,8 @@ export default {
         title: "",
         description: "",
         content: "",
-        submissions: []
+        submissions: [],
+        previewUrl: null
     }),
     mounted() {
         // load task info
@@ -66,22 +85,31 @@ export default {
             });
         // load submission info
         this.refreshSubmissionList();
-        /*
-        api.listSubmissionByTask(this.$route.params.id)
-            .then(res => {
-                const subs = res.data;
-                subs.forEach(sub => {
-                    if (!sub.score)
-                        sub.score = -1;
-                })
-                this.submissions = subs;
-            })
-        */
     },
     methods: {
         formatDate: (_date) => {
             const date = new Date(_date);
             return `${date.toTimeString()} - ${date.toDateString()}`;
+        },
+        exportSubmissions: function() {
+            let result = "";
+            const headers = ["studentId", "git", "web", "submissionDate"];
+            result += headers.join(",") + "\n";
+            this.submissions.forEach(sub => {
+                const data = [];
+                headers.forEach(key => {
+                    data.push(sub[key]);
+                });
+                result += data.join(",") + '\n';
+            });
+            console.log(result);
+            const blob = new Blob([result], {type: "text/plain"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = "_blank";
+            a.download = `${this.title}-${this.$route.params.id}.csv`;
+            a.click();
         },
         importSubmissions: function() {
             const inputEle = document.createElement('input');
@@ -157,7 +185,7 @@ export default {
                 })
         },
         deleteSubmission: function(id, cb, doRefresh = true, _confirm = true) {
-            let res = _confirm;
+            let res = true;
             if (_confirm) {
                 res = confirm("Are you sure delete this record?");
             }
@@ -222,6 +250,13 @@ export default {
             }, {
                 'before-close': event => {}
             });
+        },
+        viewWeb: function(event, url) {
+            event.preventDefault();
+            this.previewUrl = url;
+        },
+        openLink: function(url) {
+            window.open(url, "_blank");
         }
     }
 }
