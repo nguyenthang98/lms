@@ -93,7 +93,7 @@ export default {
         },
         exportSubmissions: function() {
             let result = "";
-            const headers = ["studentId", "git", "web", "submissionDate"];
+            const headers = ["studentId", "git", "web", "submissionDate", "score"];
             result += headers.join(",") + "\n";
             this.submissions.forEach(sub => {
                 const data = [];
